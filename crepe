@@ -9,198 +9,200 @@ import datetime
 #TODO: Add js, py, html, sh, java, shebangs
 #TODO: Python version with path?
 
+# Creates file for c/c++/header files
 def c(params):
     printstr = ""
     if (params["length"] % 2 == 1):
         params["length"] = params["length"] + 1
 
-    printstr = printstr + cbegin(params["length"])
-    printstr = printstr + cbreak(cline(params["length"], params["filename"]))
-    printstr = printstr + cbreak(cblank(params["length"]))
-    printstr = printstr + cbreak(cline(params["length"], params["name"]))
-    printstr = printstr + cbreak(cline(params["length"], params["datestring"]))
-    if (params["toggletime"]):
-        printstr = printstr + cbreak(cline(params["length"], params["timestring"]))
-    printstr = printstr + cend(params["length"]) + "\n\n"
+    # Adds initial block
+    if params["quiet_decoration"]:
+        printstr += cbreak(cline(params, "", False))
+    printstr += cbegin(params)
+    printstr += cbreak(cline(params, params["filename"], True))
+    printstr += cbreak(cblank(params))
+    printstr += cbreak(cline(params, params["name"], True))
+    printstr += cbreak(cline(params, params["datestring"], True))
 
-    printstr = printstr + cbegin(params["length"])
-    printstr = printstr + cbreak(cline(params["length"], "Preprocessor Directives"))
-    printstr = printstr + cend(params["length"])
+    # Will only add the current time if the option is selected
+    if (params["display_time"]):
+        printstr += cbreak(cline(params, params["timestring"], True))
 
-    if params["code"]:
-        if params["filename"].split('.')[-1].lower() == "c":
-            printstr = printstr + "\n#include <stdio.h>\n#include <stdlib.h>\n"
+    if params["quiet_decoration"]:
+        printstr += cbreak(cline(params, "", False))
+    printstr += cend(params) + "\n\n"
+
+    # Begins following blocks
+    printstr += cbegin(params)
+    printstr += cbreak(cline(params, "Preprocessor Directives", False))
+    printstr += cend(params)
+
+    # Adds directives
+    if params["display_code"]:
+        # Adds definitions if header file
+        if params["extension"][0].lower() == "h":
+            printstr += "\n#ifndef " + "_".join(params["filename"].rsplit(".")[:-1]).upper() + "_H\n#define " + "_".join(params["filename"].rsplit(".")[:-1]).upper() + "_H"
+
+            if params["extension"].lower() == "h":
+                printstr += "\n\n#include <stdio.h>\n#include <stdlib.h>\n"
+            else:
+                printstr += "\n\n#include <iostream>\n#include <string>\n"
+
+        # Differentiates between C and C++
+        elif params["extension"].lower() == "c":
+            printstr += "\n#include <stdio.h>\n#include <stdlib.h>\n"
         else:
-            printstr = printstr + "\n#include <iostream>\n#include <string>\n\nusing std::cin;\nusing std::cout;\nusing std::endl;\nusing std::string;\n"
-    printstr = printstr + space(params["blank"])
+            printstr += "\n#include <iostream>\n#include <string>\n\nusing std::cin;\nusing std::cout;\nusing std::endl;\nusing std::string;\n"
 
-    printstr = printstr + cbegin(params["length"])
-    printstr = printstr + cbreak(cline(params["length"], "Global Declarations"))
-    printstr = printstr + cend(params["length"]) + space(params["blank"])
+    printstr += space(params["rows_between_headers"])
 
-    printstr = printstr + cbegin(params["length"])
-    printstr = printstr + cbreak(cline(params["length"], "Classes"))
-    printstr = printstr + cend(params["length"]) + space(params["blank"])
+    printstr += cbegin(params)
+    printstr += cbreak(cline(params, "Global Declarations", False))
+    printstr += cend(params) + space(params["rows_between_headers"])
 
-    printstr = printstr + cbegin(params["length"])
-    printstr = printstr + cbreak(cline(params["length"], "Main Execution"))
-    printstr = printstr + cend(params["length"])
+    printstr += cbegin(params)
+    printstr += cbreak(cline(params, "Classes", False))
+    printstr += cend(params) + space(params["rows_between_headers"])
 
-    if params["code"]:
-        printstr = printstr + "\nint main(int argc, char *argv[]) {" + space(params["blank"]) + "}\n\n"
-    else:
-        printstr = printstr + space(params["blank"])
+    # Adds main execution if not a header file
+    if params["extension"][0].lower() == "c":
+        printstr += cbegin(params)
+        printstr += cbreak(cline(params, "Main Execution", False))
+        printstr += cend(params)
 
-    printstr = printstr + cbegin(params["length"])
-    printstr = printstr + cbreak(cline(params["length"], "Functions"))
-    printstr = printstr + cend(params["length"]) + space(params["blank"])
+        if params["display_code"]:
+            printstr += "\nint main(int argc, char *argv[]) {" + space(params["rows_between_headers"]) + "\n}\n\n"
+        else:
+            printstr += space(params["rows_between_headers"])
 
-    if params["watermark"]:
-        printstr = printstr + "/*" + cline(params["length"], "File generated by Crepe") + "*/ \n"
+        printstr += cbegin(params)
+        printstr += cbreak(cline(params, "Functions", False))
+        printstr += cend(params) + space(params["rows_between_headers"])
+
+    if (params["display_code"] and params["extension"][0].lower() == "h"):
+        printstr += "\n#endif\n\n"
+
+    if params["display_watermark"]:
+        printstr += "/*" + cline(params, "File generated by Crepe", True) + "*/ \n"
 
     return(printstr)
 
-def h(params):
-    printstr = ""
-    if (params["length"] % 2 == 1):
-        params["length"] = params["length"] + 1
-
-    printstr = printstr + cbegin(params["length"])
-    printstr = printstr + cbreak(cline(params["length"], params["filename"]))
-    printstr = printstr + cbreak(cblank(params["length"]))
-    printstr = printstr + cbreak(cline(params["length"], params["name"]))
-    printstr = printstr + cbreak(cline(params["length"], params["datestring"]))
-    if (params["toggletime"]):
-        printstr = printstr + cbreak(cline(params["length"], params["timestring"]))
-    printstr = printstr + cend(params["length"]) + "\n\n"
-
-    printstr = printstr + cbegin(params["length"])
-    printstr = printstr + cbreak(cline(params["length"], "Preprocessor Directives"))
-    printstr = printstr + cend(params["length"])
-    if (params["code"]):
-        printstr = printstr + "\n#ifndef " + "_".join(params["filename"].rsplit('.')[:-1]).upper() + "_H\n#define " + "_".join(params["filename"].rsplit('.')[:-1]).upper() + "_H"
-
-        if params["filename"].split('.')[-1].lower() == "h":
-            printstr = printstr + "\n\n#include <stdio.h>\n#include <stdlib.h>\n"
-        else:
-            printstr = printstr + "\n\n#include <iostream>\n#include <string>\n"
-    printstr = printstr + space(params["blank"])
-
-    printstr = printstr + cbegin(params["length"])
-    printstr = printstr + cbreak(cline(params["length"], "Global Declarations"))
-    printstr = printstr + cend(params["length"]) + space(params["blank"])
-
-    printstr = printstr + cbegin(params["length"])
-    printstr = printstr + cbreak(cline(params["length"], "Classes"))
-    printstr = printstr + cend(params["length"]) + space(params["blank"])
-
-    if (params["code"]):
-        printstr = printstr + "\n#endif\n"
-    if params["watermark"]:
-        printstr = printstr + "/*" + cline(params["length"], "File generated by Crepe") + "*/ \n"
-    return printstr
-
 def html(params):
-    pass
+    return("unfinished")
 
 def sh(params):
-    pass
+    return("unfinished")
 
 def js(params):
-    pass
+    return("unfinished")
 
 def java(params):
-    pass
+    return("unfinished")
 
 def py(params):
-    pass
+    return("unfinished")
 
-def pad(blanklength):
+def pad(blanklength, padchar):
     printstr = ""
     for x in range(int((blanklength) / 2)):
-        printstr = printstr + " "
+        printstr += padchar
     return printstr
 
-def cline(length, line):
+def cline(parmas, line, bypass):
     templen = len(line)
-    printstr = pad(length - templen) + line + pad(length - templen)
+    if not params["quiet_decoration"] or bypass:
+        printstr = pad(params["length"] - templen, " ") + line + pad(params["length"] - templen, " ")
+    else:
+        printstr = pad(params["length"] - templen, "-") + line + pad(params["length"] - templen, "-")
     if (templen % 2 == 0):
         printstr = printstr[:-1]
     return printstr
 
-def cbegin(length):
-    printstr = "/*"
-    for x in range((length - 2) // 2):
-        printstr = printstr + " *"
-    printstr = printstr + " *\\\n"
+def cbegin(parmas):
+    if params["quiet_decoration"]:
+        printstr = ""
+    else:
+        printstr = "/*"
+        for x in range((params["length"] - 2) // 2):
+            printstr += " *"
+        printstr += " *\\\n"
     return printstr
 
-def cend(length):
-    printstr = "\\*"
-    for x in range((length - 2) // 2):
-        printstr = printstr + " *"
-    printstr = printstr + " */\n"
+def cend(parmas):
+    if params["quiet_decoration"]:
+        printstr = ""
+    else:
+        printstr = "\\*"
+        for x in range((params["length"] - 2) // 2):
+            printstr += " *"
+        printstr += " */\n"
     return printstr
 
-def cblank(length):
+def cblank(parmas):
     printstr = ""
-    for x in range(length - 1):
-        printstr = printstr + " "
+    for x in range(params["length"] - 1):
+        printstr += " "
     return printstr
 
 def cbreak(printstr):
-    return " *" + printstr + "* \n"
+    if params["quiet_decoration"]:
+        return "/*" + printstr + "*/\n"
+    else:
+        return " *" + printstr + "* \n"
 
 def space(blank):
     printstr = ""
     for x in range(blank):
-        printstr = printstr + "\n"
+        printstr += "\n"
     return printstr
 
 def load(config):
-    for item in ["length", "toggletime", "toggle24", "toggleprecise", "watermark", "abb", "dateformat", "verbosedate", "blank", "code"]:
-        params[item] = int(config.get('DEFAULT', item))
-    params["name"] = config.get('DEFAULT', 'name')
+    for item in ["length", "display_time", "display_24_hour_clock", "display_seconds", "display_watermark", "abbreviated_date", "day_before_month", "display_verbose_date", "rows_between_headers", "display_code", "quiet_decoration"]:
+        params[item] = int(config.get("DEFAULT", item))
+    params["name"] = config.get("DEFAULT", "name")
     return params
 
 def save(config, params):
-        config['DEFAULT'] = params
-        with open(homedir + '/.crepe.config', 'w+') as file:
+        config["DEFAULT"] = params
+        with open(homedir + "/.crepe.config", "w+") as file:
             config.write(file)
         print("Preferences updated.")
 
 parser = argparse.ArgumentParser(description="Crepe v 1", epilog="Allows creation of file skeletons for various popular file types.")
 parser.add_argument("-n", "--name", action="store", help="Sets your name.")
 parser.add_argument("-l", "--length", action="store", help="Sets length of headers. DEFAULT = 40")
-parser.add_argument("-b", "--blank-size", action="store", dest="blank", help="Sets number of blank rows between headers. DEFAULT = 5")
+parser.add_argument("-b", "--blank-size", action="store", dest="rows_between_headers", help="Sets number of blank rows between headers. DEFAULT = 5")
 
-parser.add_argument("-t", "--time-toggle", dest="toggletime", action="store_true", help="Toggles display of time of day created. DEFAULT = true (ON)")
-parser.add_argument("-m", "--24-hour", dest="toggle24", action="store_true", help="Toggles 24-hour time. DEFAULT = false")
-parser.add_argument("-p", "--precise-time", dest="toggleprecise", action="store_true", help="Toggles precise time. DEFAULT = false")
-parser.add_argument("-w", "--watermark", dest="watermark", action="store_true", help="Toggles watermark. DEFAULT = false")
-parser.add_argument("-c", "--code", dest="code", action="store_true", help="Toggles template code within headers. DEFAULT = true")
-parser.add_argument("-a", "--abbreviated-date", dest="abb", action="store_true", help="Toggles abbreviations for day, month, year. DEFAULT = false")
-parser.add_argument("-f", "--format-date", dest="dateformat", action="store_true", help="Toggles between day/month/year and month/day/year. DEFAULT = false (month/day/year)")
-parser.add_argument("-v", "--verbose-date", dest="verbosedate", action="store_true", help="Toggles between numerical date and verbose date. DEFAULT = true (verbose date)")
 parser.add_argument("-s", "--save", action="store_true", help="Saves all specified preferences.")
 
-parser.add_argument("filename", type=str, nargs='?', help="The file to create", default='')
+parser.add_argument("-a", "--abbreviated-date", dest="abbreviated_date", action="store_true", help="Toggles abbreviations for day, month, year. DEFAULT = false")
+parser.add_argument("-c", "--code", dest="display_code", action="store_true", help="Toggles template code within headers. DEFAULT = true")
+parser.add_argument("-f", "--format-date", dest="day_before_month", action="store_true", help="Toggles between day/month/year and month/day/year. DEFAULT = false (month/day/year)")
+parser.add_argument("-m", "--24-hour", dest="display_24_hour_clock", action="store_true", help="Toggles 24-hour time. DEFAULT = false")
+parser.add_argument("-p", "--precise-time", dest="display_seconds", action="store_true", help="Toggles precise time. DEFAULT = false")
+parser.add_argument("-q", "--quiet-decoration", dest="quiet_decoration", action="store_true", help="Toggles a simpler decoration style. DEFAULT = false")
+parser.add_argument("-t", "--time-toggle", dest="display_time", action="store_true", help="Toggles display of time of day created. DEFAULT = true (ON)")
+parser.add_argument("-v", "--verbose-date", dest="display_verbose_date", action="store_true", help="Toggles between numerical date and verbose date. DEFAULT = true (verbose date)")
+parser.add_argument("-w", "--watermark", dest="display_watermark", action="store_true", help="Toggles watermark. DEFAULT = false")
+
+parser.add_argument("filename", type=str, nargs="?", help="The file to create", default="")
 
 args = parser.parse_args()
 params = {}
 config = configparser.ConfigParser()
 homedir = os.path.expanduser("~")
 now = datetime.datetime.now()
-langs = {"c": c, "cpp": c, "cxx": c, "cc": c, "c++": c, "h": h, "hh": h, "hxx": h, "hpp": h, "h++": h, "py": py, "py3": py, "pyw": py, "pyt": py, "js": js, "ls": js, "ts": js, "es": js, "sjs": js, "cs": js, "coffee": js, "iced": js, "jsp": js, "java": java, "html": html, "sh": sh}
+langs = {"c": c, "cpp": c, "cxx": c, "cc": c, "c++": c, "h": c, "hh": c, "hxx": c, "hpp": c, "h++": c, "py": py, "py3": py, "pyw": py, "pyt": py, "js": js, "ls": js, "ts": js, "es": js, "sjs": js, "cs": js, "coffee": js, "iced": js, "jsp": js, "java": java, "html": html, "sh": sh}
+file_format = {"c": "C", "cpp": "C++", "cxx": "C++", "cc": "C++", "c++": "C++", "h": "C header", "hh": "C++ header", "hxx": "C++ header", "hpp": "C++ header", "h++": "C++ header", "py": "Python", "py3": "Python", "pyw": "Python", "pyt": "Python", "js": "JavaScript", "ls": "JavaScript", "ts": "JavaScript", "es": "JavaScript", "sjs": "JavaScript", "cs": "JavaScript", "coffee": "JavaScript", "iced": "JavaScript", "jsp": "JavaScript", "java": "Java", "html": "HTML", "sh": "Shell"}
 
 if not args.save and not args.filename:
     parser.error("Either --save must be specified or filename must be given")
 
-if (os.path.exists(homedir + '/.crepe.config')):
-    config.read(homedir + '/.crepe.config')
+if (os.path.exists(homedir + "/.crepe.config")):
+    config.read(homedir + "/.crepe.config")
     params = load(config)
 else:
-    params = {"name": "", "length": 40, "toggletime": 1, "toggle24": 0, "toggleprecise": 0, "watermark": 0, "abb": 0, "dateformat": 0, "verbosedate": 1, "blank": 5, "code": 1}
+    params = {"name": "", "length": 40, "display_time": 1, "display_24_hour_clock": 0, "display_seconds": 0, "display_watermark": 0, "abbreviated_date": 0, "day_before_month": 0, "display_verbose_date": 1, "rows_between_headers": 5, "display_code": 1, "quiet_decoration": 0}
 
 if args.name:
     if len(args.name) < 151:
@@ -226,21 +228,21 @@ if args.length:
     except:
         print("Length must be an integer.")
 
-if args.blank:
+if args.rows_between_headers:
     try:
-        args.blank = int(args.blank.rstrip())
-        if args.blank > 0 and args.blank < 26:
-            params["blank"] = args.blank
+        args.rows_between_headers = int(args.rows_between_headers.rstrip())
+        if args.rows_between_headers > 0 and args.rows_between_headers < 26:
+            params["rows_between_headers"] = args.rows_between_headers
         else:
             print("Blank size must be between 1 and 25.")
     except:
         print("Blank size must be an integer.")
 
-for arg, item in [args.toggletime, "toggletime"], [args.toggle24, "toggle24"], [args.toggleprecise, "toggleprecise"], [args.watermark, "watermark"], [args.abb, "abb"], [args.dateformat, "dateformat"], [args.verbosedate, "verbosedate"], [args.code, "code"]:
+for arg, item in [args.display_time, "display_time"], [args.display_24_hour_clock, "display_24_hour_clock"], [args.display_seconds, "display_seconds"], [args.display_watermark, "display_watermark"], [args.abbreviated_date, "abbreviated_date"], [args.day_before_month, "day_before_month"], [args.display_verbose_date, "display_verbose_date"], [args.display_code, "display_code"], [args.quiet_decoration, "quiet_decoration"]:
     if arg:
         params[item] = abs(params[item] - 1)
 
-if args.save or not os.path.exists(homedir + '/.crepe.config'):
+if args.save or not os.path.exists(homedir + "/.crepe.config"):
     save(config, params)
 
 if args.filename:
@@ -257,15 +259,15 @@ params["datestring"] = {
     5: lambda : now.strftime("%d/%m/%y"),
     6: lambda : now.strftime("%a, %b %d, %Y"),
     7: lambda : now.strftime("%a %d %b, %Y"),
-}[params["dateformat"] + params["verbosedate"] * 2 + params["abb"] * 4]()
+}[params["day_before_month"] + params["display_verbose_date"] * 2 + params["abbreviated_date"] * 4]()
 
-if params["toggletime"]:
+if params["display_time"]:
     params["timestring"] = {
         0: lambda : now.strftime("%I:%M %p"),
         1: lambda : now.strftime("%I:%M:%S %p"),
         2: lambda : now.strftime("%H:%M"),
         3: lambda : now.strftime("%H:%M:%S"),
-    }[params["toggleprecise"] + params["toggle24"] * 2]()
+    }[params["display_seconds"] + params["display_24_hour_clock"] * 2]()
 else:
     params["timestring"] = ""
 
@@ -276,6 +278,16 @@ if (os.path.exists("./"+params["filename"])):
     sys.exit()
 
 try:
-    print(langs[params["filename"].split('.')[-1].lower()](params))
+    params["extension"] = params["filename"].split(".")[-1]
+    file_skeleton = langs[params["extension"].lower()](params)
+    print(file_skeleton)
+    try:
+        with open("./"+params["filename"], "w+") as file:
+            file.write(file_skeleton)
+        print("Successfully created {} in {} format.".format(params["filename"], file_format[params["extension"].lower()]))
+    except:
+        print("Unable to create {}.".format(params["filename"]))
+
 except:
-    print("Unknown file extension: .{}".format(params["filename"].split('.')[-1]))
+    print("Unknown file extension: .{}".format(params["extension"]))
+    sys.exit()
